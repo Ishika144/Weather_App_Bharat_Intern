@@ -16,6 +16,7 @@
       margin: 0;
       font-family: 'Open Sans', sans-serif;
       background: #222;
+      background-image: url('');
       background-size: cover;
       background-position: center;
       font-size: 120%;
@@ -154,73 +155,75 @@
     </div>
   </div>
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const apiKey = "fad3673bf67cff7c7b5b35ddc42461b5";
-      const locat = document.querySelector(".city");
-      const temp = document.querySelector(".temp");
-      const description = document.querySelector(".description");
-      const humidity = document.querySelector(".humidity");
-      const wind = document.querySelector(".wind");
-      const searchBar = document.querySelector(".search-bar");
-      const searchBtn = document.getElementById("search-btn");
-      const body = document.body;
-      const dateElement = document.querySelector(".date");
+  document.addEventListener("DOMContentLoaded", function () {
+    const apiKey = "fad3673bf67cff7c7b5b35ddc42461b5";
+    const locat = document.querySelector(".city");
+    const temp = document.querySelector(".temp");
+    const description = document.querySelector(".description");
+    const humidity = document.querySelector(".humidity");
+    const wind = document.querySelector(".wind");
+    const searchBar = document.querySelector(".search-bar");
+    const searchBtn = document.getElementById("search-btn");
+    const body = document.body;
+    const dateElement = document.querySelector(".date");
 
-      // Preload the image
-      const preloadImage = new Image();
-      preloadImage.src = 'https://source.unsplash.com/1600x900/?placeholder';
-      preloadImage.onload = () => {
-        body.style.backgroundImage = `url('${preloadImage.src}')`;
-      };
-
-      searchBtn.addEventListener("click", fetchWeather);
-      document
-        .querySelector(".search-bar")
-        .addEventListener("keyup", function (event) {
-          if (event.key === "Enter") {
-            fetchWeather();
-          }
-        });
-
-      function fetchWeather() {
-        let city = searchBar.value;
-        fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`
-        )
-          .then((response) => {
-            if (!response.ok) {
-              alert("No weather found.");
-              throw new Error("No weather found.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            const temperatureCelsius = (data.main.temp - 273.15).toFixed(1);
-            const temperatureFahrenheit = ((data.main.temp - 273.15) * 9 / 5 + 32).toFixed(1);
-
-            locat.innerHTML = `Weather in ${data.name}`;
-            temp.innerHTML = `${temperatureCelsius}°C / ${temperatureFahrenheit}°F`;
-            description.innerHTML = `${data.weather[0].description}`;
-            document.querySelector(".icon").src =
-              `https://openweathermap.org/img/wn/${data.weather[0].icon}.png`;
-            humidity.innerHTML = `Humidity: ${data.main.humidity}%`;
-            wind.innerHTML = `Wind Speed: ${data.wind.speed.toFixed(1)} km/h`;
-            dateElement.innerHTML = `Date: ${getCurrentDate()}`;
-
-            // Update background image based on search
-            body.style.backgroundImage = `url('https://source.unsplash.com/1600x900/?${city}')`;
-          })
-          .catch((error) => {
-            console.error("Error fetching weather:", error);
-          });
-      }
-
-      function getCurrentDate() {
-        const currentDate = new Date();
-        return currentDate.toDateString();
+    // Event listeners
+    searchBtn.addEventListener("click", fetchWeather);
+    searchBar.addEventListener("keyup", function (event) {
+      if (event.key === "Enter") {
+        fetchWeather();
       }
     });
-  </script>
+
+    function fetchWeather() {
+      let city = searchBar.value.trim();
+      if (!city) return;
+
+      fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`)
+        .then((response) => {
+          if (!response.ok) {
+            alert("No weather found.");
+            throw new Error("No weather found.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          const temperatureCelsius = (data.main.temp - 273.15).toFixed(1);
+          const temperatureFahrenheit = ((data.main.temp - 273.15) * 9 / 5 + 32).toFixed(1);
+
+          locat.innerHTML = `Weather in ${data.name}`;
+          temp.innerHTML = `${temperatureCelsius}°C / ${temperatureFahrenheit}°F`;
+          description.innerHTML = `${data.weather[0].description}`;
+          document.querySelector(".icon").src =
+            `https://openweathermap.org/img/wn/${data.weather[0].icon}.png`;
+          humidity.innerHTML = `Humidity: ${data.main.humidity}%`;
+          wind.innerHTML = `Wind Speed: ${data.wind.speed.toFixed(1)} km/h`;
+          dateElement.innerHTML = `Date: ${getCurrentDate()}`;
+
+          // Update background image
+          const imageUrl = `https://source.unsplash.com/1600x900/?${city}&${new Date().getTime()}`;
+          const img = new Image();
+          img.onload = function () {
+            body.style.backgroundImage = `url('${imageUrl}')`;
+          };
+          img.onerror = function () {
+            body.style.backgroundImage = `url('https://source.unsplash.com/1600x900/?nature&${new Date().getTime()}')`;
+          };
+          img.src = imageUrl;
+        })
+        .catch((error) => {
+          console.error("Error fetching weather:", error);
+        });
+    }
+
+    function getCurrentDate() {
+      const currentDate = new Date();
+      return currentDate.toDateString();
+    }
+  });
+</script>
+
 </body>
 
 </html>
+
